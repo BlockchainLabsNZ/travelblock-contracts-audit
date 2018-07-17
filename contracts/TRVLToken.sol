@@ -12,7 +12,7 @@ contract TRVLToken is RewardToken {
     uint8 public constant decimals = 18;
     uint256 public constant TOTAL_CAP = 600000000 * (10 ** uint256(decimals));
 
-    event TransferReward(address indexed from, address indexed to, uint256 value);
+    event TransferReward(address from, address to, uint256 value);
 
     /// @dev Verifies the user has enough tokens to cover the payment.
     modifier senderHasEnoughTokens(uint256 _regularTokens, uint256 _rewardTokens) {
@@ -49,7 +49,7 @@ contract TRVLToken is RewardToken {
             paymentRegularTokens(_amount, _rewardPercentageIndex);
 
         } else {
-            if(regularTokensAvailable > 0) {
+            if (regularTokensAvailable > 0) {
                 uint256 amountOfRewardsTokens = _amount.sub(regularTokensAvailable);
                 paymentMixed(regularTokensAvailable, amountOfRewardsTokens, _rewardPercentageIndex);
             } else {
@@ -111,11 +111,11 @@ contract TRVLToken is RewardToken {
         // 2. distribute reward tokens to the user.
         uint256 rewardAmount = getRewardTokenPercentage(_regularTokenAmount, _rewardPercentageIndex);
         rewardBalances[msg.sender] = rewardBalances[msg.sender].add(rewardAmount);
-        emit TransferReward(msg.sender, owner, rewardAmount);
+        emit TransferReward(owner, msg.sender, rewardAmount);
 
         // 3. Update the owner balance minus the reward tokens.
         balances[owner] = balances[owner].add(_regularTokenAmount.sub(rewardAmount));
-        emit Transfer(owner, msg.sender, _regularTokenAmount.sub(rewardAmount));
+        emit Transfer(msg.sender, owner, _regularTokenAmount.sub(rewardAmount));
     }
 
     /// @notice Process a payment using only reward TRVL Tokens.
@@ -149,15 +149,15 @@ contract TRVLToken is RewardToken {
     /// @param _user The user receiving the converted tokens.
     /// @param _amount The amount of tokens to be converted.
     function convertRegularToRewardTokens(address _user, uint256 _amount)
-    external
-    onlyOwner
-    validAmount(_amount)
-    senderHasEnoughTokens(_amount, 0)
-    isWhitelisted(_user)
+        external
+        onlyOwner
+        validAmount(_amount)
+        senderHasEnoughTokens(_amount, 0)
+        isWhitelisted(_user)
     {
         balances[msg.sender] = balances[msg.sender].sub(_amount);
         rewardBalances[_user] = rewardBalances[_user].add(_amount);
 
-        emit TransferReward(msg.sender, owner, _amount);
+        emit TransferReward(msg.sender, _user, _amount);
     }
 }

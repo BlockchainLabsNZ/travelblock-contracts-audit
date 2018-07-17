@@ -49,6 +49,7 @@ contract RewardToken is PausableToken, Whitelist, HasNoTokens{
     function addRewardPercentage(uint256 _percentage) public onlyAdmin isValidRewardPercentage(_percentage) returns (uint256 _index) {
         _index = rewardPercentage.length;
         rewardPercentage.push(_percentage);
+
         emit RewardPercentage(_index, _percentage);
     }
 
@@ -67,6 +68,7 @@ contract RewardToken is PausableToken, Whitelist, HasNoTokens{
         isValidRewardPercentage(_percentage)
     {
         rewardPercentage[_index] = _percentage;
+
         emit RewardPercentage(_index, _percentage);
     }
 

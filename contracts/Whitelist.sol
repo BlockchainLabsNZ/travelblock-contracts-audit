@@ -8,6 +8,8 @@ import "./Admin.sol";
 contract Whitelist is Admin {
     mapping(address => bool) public whitelist;
 
+    event WhitelistAdded(address added);
+    event WhitelistRemoved(address removed);
 
     /// @dev Verifies the user is whitelisted.
     modifier isWhitelisted(address _user) {
@@ -16,23 +18,35 @@ contract Whitelist is Admin {
     }
 
     /// @notice Adds a list of addresses to the whitelist.
-    /// @dev Requires that the msg.sender is the Owner.
+    /// @dev Requires that the msg.sender is the Admin. Emits an event on success.
     /// @param _users The list of addresses to add to the whitelist.
     function addAddressesToWhitelist(address[] _users) external onlyAdmin {
         require(_users.length > 0, "Cannot add an empty list to whitelist!");
         for (uint256 i = 0; i < _users.length; ++i) {
-            require(_users[i] != address(0));
-            whitelist[_users[i]] = true;
+            address user = _users[i];
+            require(user != address(0), "Cannot add the zero address to whitelist!");
+
+            if (!whitelist[user]) {
+                whitelist[user] = true;
+
+                emit WhitelistAdded(user);
+            }
         }
     }
 
-    /// @notice Removes a list of addresses to the whitelist.
-    /// @dev Requires that the msg.sender is an Owner.
+    /// @notice Removes a list of addresses from the whitelist.
+    /// @dev Requires that the msg.sender is an Admin. Emits an event on success.
     /// @param _users The list of addresses to remove from the whitelist.
     function removeAddressesFromWhitelist(address[] _users) external onlyAdmin {
         require(_users.length > 0, "Cannot remove an empty list to whitelist!");
         for (uint256 i = 0; i < _users.length; ++i) {
-            whitelist[_users[i]] = false;
+            address user = _users[i];
+
+            if (whitelist[user]) {
+                whitelist[user] = false;
+
+                emit WhitelistRemoved(user);
+            }
         }
     }
 }

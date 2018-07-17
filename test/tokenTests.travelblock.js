@@ -60,6 +60,12 @@ contract('Create Travel Token Contract - TravelBlock', function (accounts) {
             assert.equal(await this.travelTokenContract.whitelist(Owner), true);
         });
 
+        it('Allows Owner to call an adminOnly function, even if they are not explicitly on the admins list', async function () {
+            await this.travelTokenContract.removeAddressesFromWhitelist([Owner], {from: Owner});
+            await this.travelTokenContract.addRewardPercentage(10, {from: Owner});
+            assert.equal(await this.travelTokenContract.rewardPercentage(0), 10, {from: Owner});
+        });
+
         it('Reverts when address(0) is added to whitelist', async function () {
             await assertRevert(this.travelTokenContract.addAddressesToWhitelist([ZERO_ADDRESS], {from: Owner}));
             assert.equal(await this.travelTokenContract.whitelist(ZERO_ADDRESS), false);
@@ -76,6 +82,26 @@ contract('Create Travel Token Contract - TravelBlock', function (accounts) {
 
         it('Reverts when empty list is removed to admins', async function () {
             await assertRevert(this.travelTokenContract.removeAddressesFromAdmins([], {from: Owner}));
+        });
+
+        it('Adding admins who are already on admins, will not emit an event', async function () {
+            const { logs } = await this.travelTokenContract.addAddressesToAdmins([Owner], {from: Owner});
+            assert.equal(logs.length, 0);
+        });
+
+        it('Adding whitelisters who are already on whitelist, will not emit an event', async function () {
+            const { logs } = await this.travelTokenContract.addAddressesToWhitelist([USER_1], {from: Owner});
+            assert.equal(logs.length, 0);
+        });
+
+        it('Removing whitelisters who are not on whitelist, will not emit an event', async function () {
+            const { logs } = await this.travelTokenContract.removeAddressesFromWhitelist([BadGuy], {from: Owner});
+            assert.equal(logs.length, 0);
+        });
+
+        it('Removing admins who are not admins already, will not emit an event', async function () {
+            const { logs } = await this.travelTokenContract.removeAddressesFromAdmins([BadGuy], {from: Owner});
+            assert.equal(logs.length, 0);
         });
 
         it('Values are removed by owner from whitelist', async function () {
@@ -378,7 +404,6 @@ contract('Create Travel Token Contract with default values -', function(accounts
                 assert(await Constants.checkTokenBalances(USERS, [totalSupply.sub(3000), 1000, 1000, 1000]));
                 assert(await Constants.checkRewardTokenBalances(USERS, [0, 0, 0, 0]));
             });
-
         });
     });
 });
